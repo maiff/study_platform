@@ -5,12 +5,13 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
-    // isWriter: '0'
+    user_info: {}
   },
   mutations: {
-    // toggleWriter(state, value) {
-    //   state.isWriter = value
-    // }
+    setUserValue(state, value) {
+      console.log(value)
+      state.user_info = value
+    }
   }
 })
 

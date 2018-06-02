@@ -10,6 +10,7 @@
       <el-form-item prop="pass">
         <el-input  v-model="ruleForm2.pass" auto-complete="off" placeholder="密码" type="password"></el-input>
       </el-form-item>
+      <span v-if="!!error_text" style="color: red" class="error_text">{{error_text}}</span>
       <el-form-item style="width:100%;">
         <el-button type="primary" style="width:100%;" @click="submit" :loading="logining">登录</el-button>
         <!--<el-button @click.native.prevent="handleReset2">重置</el-button>-->
@@ -19,14 +20,23 @@
 </template>
 
 <script>
+import { login } from '../service.js'
+import Cookie from 'js-cookie'
+
 export default {
   name: 'Login',
+  mounted() {
+    if(Cookie.get('studentid')) {
+      this.$router.push('/classlist')
+    }
+  },
   data() {
     return {
+      error_text: '',
       logining: false,
       ruleForm2: {
-        account: 'admin',
-        pass: '',
+        account: 'jason@fbla-china.org',
+        pass: 'MFA4RWET',
       },
       rules2: {
         account: [
@@ -42,7 +52,33 @@ export default {
   },
   methods: {
     submit(){
-      this.$router.push('/home')
+      this.logining = true
+      login({
+        student_pwd: this.ruleForm2.pass,
+        student_email: this.ruleForm2.account,
+      }).then((data) => {
+        // console.log(data)
+        if(data.status === 1) {
+          this.error_text = ''
+          Cookie.set('studentid', data.student_info._id.$id)
+          this.$message({
+            message: '登录成功~',
+            type: 'success',
+            duration: 1500,
+            onClose: () => {
+              this.$store.commit('setUserValue', data.student_info)
+              this.$router.push('/classlist')
+            }
+          });
+
+        } else {
+          this.error_text = '邮箱或者密码错误~'
+        }
+        // console.log(data === 1)
+        this.logining = false
+        
+      })
+      // this.$router.push('/classlist')
     },
   },
   computed: {
@@ -90,7 +126,12 @@ export default {
       }
       .el-radio {
         margin-bottom: 10px;
+        margin-top: 10px;
       }
     }
+  }
+  .error_text{
+    color: red;
+    // margin-bottom: 10px; 
   }
 </style>

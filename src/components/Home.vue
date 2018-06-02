@@ -1,33 +1,14 @@
 <template>
   <div class="Home">
-    <el-header style="text-align: right; font-size: 12px">
-      <el-dropdown>
-        <i class="el-icon-setting" style="margin-right: 15px"></i>
-        <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item>查看</el-dropdown-item>
-          <el-dropdown-item>新增</el-dropdown-item>
-          <el-dropdown-item>删除</el-dropdown-item>
-        </el-dropdown-menu>
-      </el-dropdown>
-      <span>某某学生</span>
-    </el-header>
+    <Head />
     <el-container style="height: 100%; border: 1px solid #eee">
-      <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
-        <el-menu :default-openeds="['1', '3']">
-          <el-submenu index="1">
-            <template slot="title"><i class="el-icon-message"></i>导航一</template>
-            <el-menu-item-group>
-              <template slot="title">分组一</template>
+      <el-aside width="20%" style="background-color: rgb(238, 241, 246)">
+        <!-- <el-menu :default-openeds="['1', '3']" @select="onselect" @open="onopen" @close="onclose">
+          <el-submenu index="1" title="试试看" >
+              <template slot="title"><i class="el-icon-message"></i>导航一</template>
               <el-menu-item index="1-1">选项1</el-menu-item>
               <el-menu-item index="1-2">选项2</el-menu-item>
-            </el-menu-item-group>
-            <el-menu-item-group title="分组2">
-              <el-menu-item index="1-3">选项3</el-menu-item>
-            </el-menu-item-group>
-            <el-submenu index="1-4">
-              <template slot="title">选项4</template>
-              <el-menu-item index="1-4-1">选项4-1</el-menu-item>
-            </el-submenu>
+            
           </el-submenu>
           <el-submenu index="2">
             <template slot="title"><i class="el-icon-menu"></i>导航二</template>
@@ -59,7 +40,8 @@
               <el-menu-item index="3-4-1">选项4-1</el-menu-item>
             </el-submenu>
           </el-submenu>
-        </el-menu>
+        </el-menu> -->
+        <el-tree :data="menuItems" :props="defaultProps" @node-click="handleNodeClick" :render-content="renderContent"></el-tree>
       </el-aside>
       
       <el-container>
@@ -74,36 +56,123 @@
             <el-table-column prop="address" label="地址">
             </el-table-column>
           </el-table> -->
-          <el-container>
-            some-media
+          <el-container class="title">
+            {{content.content_name || '请选择左侧课程~'}}
           </el-container>
+          <div v-if="content.content_type === 'HTML'">
+            <div v-html="content.html_text"></div>
+          </div>
+          <div v-if="content.content_type === 'VIDEO'">
+            <div>
+              <video :src="content.video_url" id="videoPlay" controls="controls" class="video" oncontextmenu="return false;" v-show="!isBeginQuiz">您的浏览器不支持 video 视屏播放。</video>
+              <Quiz :studentId="studentId" :quizs="quizs" :onDone="onQuizDone" />
+            </div>
+          </div>
 
           
 
 
         </el-main>
-        <div class="console">
+        <!-- <div class="console">
             console
-        </div>
+        </div> -->
       </el-container>
+      
     </el-container>
+    
   </div>
 </template>
 
 <script>
+import { getContents, getContent } from '../service.js'
+import Cookie from 'js-cookie'
+
+import Head from './Head'
+import Quiz from './Quiz'
+
 export default {
   name: 'Home',
   props: {
     msg: String
   },
+  components: {
+    Head,
+    Quiz,
+  },
+  mounted() {
+    this.session_id = this.$router.currentRoute.query.seession_id
+    this.studentId = Cookie.get('studentid')
+    getContents({session_id: this.session_id}).then((data) => {
+      // console.log(data)
+      this.menuItems = this.handleList(data)
+      // console.log(this.menuItems)
+    })
+  },
   methods: {
-      handleOpen(key, keyPath) {
-        console.log(key, keyPath);
+    renderContent(h, { node }) {
+        return (
+          <span class="el-tree-node__label">
+            <span title={node.label}>{node.label}</span>
+          </span>);
       },
-      handleClose(key, keyPath) {
-        console.log(key, keyPath);
+      handleNodeClick(data) {
+        console.log(data.content_info)
+
+        if( data.content_info.content_type === 'VIDEO')
+          getContent({content_id: data.content_info.content_id}).then((data) => {
+            console.log(data.content_quiz)
+            this.quizs = [...data.content_quiz]
+            
+          })
+        // getContent({content_id: data.content_info.content_id}).then((i) => {
+          this.content = data.content_info
+        // })
+      },
+      handleList(list) {
+        let result = []
+        list.map(v => {
+          this.dfs(result, v)
+        })
+        return result
+      },
+      dfs(result, v) {
+        // console.log(v, result)
+        if (+v.content_info.content_level === 1) {
+          result.push({
+            label: v.content_info.content_name,
+            children: [],
+            content_info: {
+              ...v.content_info,
+              id: v._id.$id,
+            }
+          })
+        } else {
+          const len = result.length
+          const l = +v.content_info.content_level
+          v.content_info.content_level = l - 1
+          v.content_info.content_raw_level = l
+          this.dfs(result[len-1].children, v)
+        }
+      },
+      onQuizDone() {
+        this.isBeginQuiz = false
       }
+    },
+  data() {
+    return {
+      session_id: '',
+      menuItems:[],
+      defaultProps: {
+        children: 'children',
+        label: 'label',
+        content_info: 'content_info'
+      },
+      content: {},
+      studentId: '',
+      quizs: [],
+      isBeginQuiz: false,
     }
+  }
 }
 </script>
 
@@ -128,4 +197,44 @@ export default {
     width: calc(100% - 201px);
     border-top: 1px solid #ccc;
   }
+  .el-tree-node{
+    padding: 15px 0;
+  }
+  .title{
+    font-size: 20px;
+  }
+  #videoPlay{
+    width: 100%;
+  }
 </style>
+<style>
+.el-tree-node{
+  white-space: normal!important;
+}
+.el-tree-node__content{
+    padding: 15px 0;
+    
+  }
+  .el-tree-node__label{
+    /* overflow: hidden;
+    text-overflow: ellipsis; */
+  }
+  .el-tree-node__expand-icon + .el-tree-node__label{
+    font-weight:bolder;
+  }
+  .el-tree-node__expand-icon.is-leaf + .el-tree-node__label{
+    font-weight: normal;
+  }
+  video::-internal-media-controls-download-button { 
+    display:none; 
+  }
+
+  video::-webkit-media-controls-enclosure { 
+    overflow:hidden; 
+  }
+  video::-webkit-media-controls-panel { 
+    width: calc(100% + 30px); 
+  }
+
+</style>
+

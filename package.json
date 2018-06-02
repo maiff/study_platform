@@ -5,11 +5,13 @@
   "scripts": {
     "serve": "vue-cli-service serve --open",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "deploy": "npm run build && scp -i ~/Downloads/new_one -r ./dist/* ubuntu@115.159.213.177:static"
   },
   "dependencies": {
     "axios": "^0.18.0",
     "element-ui": "^2.3.7",
+    "js-cookie": "^2.2.0",
     "normalize.css": "^8.0.0",
     "vue": "^2.5.16",
     "vue-router": "^3.0.1",
