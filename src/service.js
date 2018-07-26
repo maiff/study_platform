@@ -77,3 +77,21 @@ export function getContent({
       console.log(error);
     })
 }
+export function uploadQuiz({
+  quiz_id,
+  student_id,
+  quiz_answer,
+}) {
+  return axios.post('/index.php', {
+      function: 'uploadQuiz',
+      quiz_id,
+      student_id,
+      quiz_answer,
+    })
+    .then(function (response) {
+      return response.data
+    })
+    .catch(function (error) {
+      console.log(error);
+    })
+}

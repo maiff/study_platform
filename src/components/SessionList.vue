@@ -44,7 +44,7 @@ export default {
       data.map(i => {
         this.tableData2.push({
           name: i.session_info.session_name,
-          sessionNum: i.content_ids.length,
+          sessionNum: i.session_first_content_count,
           seession_id: i.session_info.session_id,
           session_description: i.session_info.session_description,
         })

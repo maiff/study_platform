@@ -6,7 +6,9 @@
     "serve": "vue-cli-service serve --open",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "deploy": "npm run build && scp -i ~/Downloads/new_one -r ./dist/* ubuntu@115.159.213.177:static"
+    "deploy": "npm run build && scp -i ~/Downloads/new_one -r ./dist/* ubuntu@115.159.213.177:static",
+    "deploy:ma": "npm run build && scp ./dist/* ubuntu@121.201.13.90:/var/www/yiquan/lf_vue",
+    "scp:ma": "scp -r ./dist/* ubuntu@121.201.13.90:/tmp"
   },
   "dependencies": {
     "axios": "^0.18.0",

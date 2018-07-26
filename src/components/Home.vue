@@ -58,13 +58,15 @@
           </el-table> -->
           <el-container class="title">
             {{content.content_name || '请选择左侧课程~'}}
+            <span class="title-description" v-if="content.content_type === 'VIDEO'"> (本课程有{{content_quiz.length}}道随堂练习)</span>
           </el-container>
           <div v-if="content.content_type === 'HTML'">
-            <div v-html="content.html_text"></div>
+            <div v-if="content.html_text" v-html="content.html_text"></div>
+            <div v-if="!content.html_text" style="margin-top:20px">Coming soon.</div>
           </div>
           <div v-if="content.content_type === 'VIDEO'">
             <div>
-              <video :src="content.video_url" id="videoPlay" controls="controls" class="video" oncontextmenu="return false;" v-show="!isBeginQuiz">您的浏览器不支持 video 视屏播放。</video>
+              <video :src="content.video_url" id="videoPlay" controls="controls" class="video" oncontextmenu="return false;" v-show="!isBeginQuiz" @timeupdate="timeupdate" @ended="videoEnd">您的浏览器不支持 video 视屏播放。</video>
               <Quiz :studentId="studentId" :quizs="quizs" :onDone="onQuizDone" />
             </div>
           </div>
@@ -104,7 +106,7 @@ export default {
     this.studentId = Cookie.get('studentid')
     getContents({session_id: this.session_id}).then((data) => {
       // console.log(data)
-      this.menuItems = this.handleList(data)
+      this.menuItems = this.handleList(data) 
       // console.log(this.menuItems)
     })
   },
@@ -118,12 +120,27 @@ export default {
       handleNodeClick(data) {
         console.log(data.content_info)
 
-        if( data.content_info.content_type === 'VIDEO')
+        if( data.content_info.content_type === 'VIDEO'){
           getContent({content_id: data.content_info.content_id}).then((data) => {
-            console.log(data.content_quiz)
-            this.quizs = [...data.content_quiz]
-            
+            // console.log(data.content_quiz)
+            this.quizsByTimes = {}
+            this.isBeginQuiz = false
+            this.quizs = []
+            this.videoDone = false        
+            const quizsByTimes = this.quizsByTimes
+            this.content_quiz = data.content_quiz
+            data.content_quiz.map((v) => {
+              if(quizsByTimes[+v.quiz_position]) {
+                quizsByTimes[v.quiz_position].push(v)
+              } else {
+                quizsByTimes[v.quiz_position] = [v]
+              }
+            })
+            // this.quizs = [...data.content_quiz]
+            // quizsByTimes
           })
+          
+        }
         // getContent({content_id: data.content_info.content_id}).then((i) => {
           this.content = data.content_info
         // })
@@ -156,10 +173,35 @@ export default {
       },
       onQuizDone() {
         this.isBeginQuiz = false
+        this.quizs = []
+        this.videoDone || this.videoElement.play()
+        this.videoDone = false
+      },
+      timeupdate(event) {
+        const currentTime = event.target.currentTime;//获取当前播放时间
+        this.videoElement = event.target
+        // console.log(currentTime,this.quizsByTimes[~~currentTime],this.quizsByTimes);//在调试器中打印
+        if(this.quizsByTimes[~~currentTime]){
+          this.quizs = this.quizsByTimes[~~currentTime]
+          setTimeout(() => {
+            this.videoElement.pause()
+          }, 1000);
+          this.isBeginQuiz = true
+        }
+      },
+      videoEnd() {
+        if(this.quizsByTimes[-1]){
+          this.quizs = this.quizsByTimes[-1]
+          
+          this.isBeginQuiz = true
+          this.videoDone = true
+        }
       }
     },
   data() {
     return {
+      videoDone: false,
+      videoElement: null,
       session_id: '',
       menuItems:[],
       defaultProps: {
@@ -171,6 +213,8 @@ export default {
       studentId: '',
       quizs: [],
       isBeginQuiz: false,
+      quizsByTimes: {},
+      content_quiz: []
     }
   }
 }
@@ -206,10 +250,15 @@ export default {
   #videoPlay{
     width: 100%;
   }
+  .title-description{
+    font-size: 14px;
+    display: contents;
+  }
 </style>
 <style>
 .el-tree-node{
   white-space: normal!important;
+  background: rgb(238, 241, 246);
 }
 .el-tree-node__content{
     padding: 15px 0;

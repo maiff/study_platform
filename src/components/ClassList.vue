@@ -9,7 +9,8 @@
       >
       <el-table-column >
         <template slot-scope="scope">
-          <img :src="scope.row.img_url" alt="" class="avatar_url">
+          <div style="text-align: center"><img :src="scope.row.img_url" alt="" class="avatar_url"></div>
+          
         </template>
       </el-table-column>
      
@@ -102,9 +103,10 @@ export default {
     /* margin: 0 auto; */
   }
   .avatar_url{
-    width: 30px;
-    height: 30px;
-    border-radius: 50%; 
+    width: 50px;
+    height: 50px;
+    transform: translate(0, 10%);
+    /* border-radius: 50%;  */
   }
 </style>
 <style>

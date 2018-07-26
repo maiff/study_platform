@@ -1,7 +1,7 @@
 <template>
   <div class="l-c">
     <el-form :model="ruleForm2" :rules="rules2" ref="ruleForm2" label-position="left" label-width="0px" class="demo-ruleForm login-container" status-icon>
-      <h3 class="title">XXX 学习平台</h3>
+      <h3 class="title">LearningFirst</h3>
       <!-- <el-radio v-model="radio" label="0">User</el-radio>
       <el-radio v-model="radio" label="1">Writer</el-radio> -->
       <el-form-item prop="account">
@@ -35,8 +35,8 @@ export default {
       error_text: '',
       logining: false,
       ruleForm2: {
-        account: 'jason@fbla-china.org',
-        pass: 'MFA4RWET',
+        account: '',
+        pass: '',
       },
       rules2: {
         account: [

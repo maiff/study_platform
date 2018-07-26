@@ -5,22 +5,27 @@
     
     <div>
       <el-radio-group v-model="answer" @change="oneDone" :disabled="isOneDone">
-          <el-radio  v-for="(i, index) in question.question_options" :key="i" class="choose" :label="index" >{{i}}</el-radio>
+          <el-radio  v-for="(i, index) in question.question_options" :key="i" class="choose" :label="index" >{{chooseKey[index]}}. {{i}}</el-radio>
       </el-radio-group>
     </div>
-    <span class="answer" v-if="isOneDone">此题答案: 第{{question.question_answer}}个</span>
+    <span class="answer" v-if="isOneDone">此题答案: {{chooseKey[+question.question_answer - 1]}}</span>
     <el-button type="primary" class="question-button" @click="clickC(question.now_index)">{{question.now_index === quizs.length ? '完成答题' : '下一题'}}</el-button>
     
   </div>
 </template>
 
 <script>
+import { uploadQuiz } from '../service.js'
+
 export default {
   name: 'Quiz',
   props: {
     studentId: String,
     quizs: Array,
     onDone: Function,
+  },
+  mounted(){
+    console.log(this.isDone)
   },
   watch: {
     quizs: function () {
@@ -33,6 +38,7 @@ export default {
   },
   data() {
     return {
+      chooseKey: ['A', 'B', 'C', 'D', 'E', 'F'],
       isDone: false,
       isOneDone: false,
       answer: null,
@@ -54,17 +60,27 @@ export default {
         ...this.quizs[old_index],
         now_index: old_index + 1,
       }
+      this.isOneDone = false,
+      this.answer = null
       // this.$forceUpdate()
     },
     done() {
       this.isDone = true
       this.onDone()
+      this.isDone = false
+      this.isOneDone = false,
+      this.answer = null
     },
     clickC(now_index) {
       now_index === this.quizs.length ? this.done() : this.goNext()
     },
     oneDone() {
       this.isOneDone = true
+      uploadQuiz({
+        quiz_id: this.question._id.$id,
+        student_id: this.studentId,
+        quiz_answer: this.answer,
+      })
     }
 
   },

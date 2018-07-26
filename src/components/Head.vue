@@ -3,9 +3,8 @@
     <el-dropdown>
       <i class="el-icon-setting" style="margin-right: 15px"></i>
       <el-dropdown-menu slot="dropdown">
-        <el-dropdown-item>查看</el-dropdown-item>
-        <el-dropdown-item>新增</el-dropdown-item>
-        <el-dropdown-item>删除</el-dropdown-item>
+        <el-dropdown-item ><div @click="logout()">退出</div></el-dropdown-item>
+       
       </el-dropdown-menu>
     </el-dropdown>
     <span>{{name}}</span>
@@ -13,6 +12,8 @@
 </template>
 
 <script>
+import Cookie from 'js-cookie'
+
 export default {
   name: 'Head',
   props: {
@@ -20,8 +21,15 @@ export default {
   },
   computed:{
     name(){
-      return this.$store.state.user_info.student_lastName + this.$store.state.user_info.student_givenName
+      return Cookie.get('user_name')
     }
+  },
+  methods: {
+   logout(){
+     console.log('out')
+     Cookie.remove('studentid');
+     location.reload()
+   } 
   }
 }
 </script>
